@@ -31,15 +31,3 @@ func Connect() *mongo.Client {
 
 	return client
 }
-
-func GetDatabase(client *mongo.Client, dbName string) *mongo.Database {
-	return client.Database(dbName)
-}
-
-func GetCollection(db *mongo.Database, collectionName string) *mongo.Collection {
-	return db.Collection(collectionName)
-}
-
-func InsertOne(collection *mongo.Collection, document interface{}) (*mongo.InsertOneResult, error) {
-	return collection.InsertOne(context.TODO(), document)
-}

@@ -11,13 +11,8 @@ import (
 func main() {
 	fmt.Println("Hello, Locksyra!")
 	db.Connect()
-	engine := engine.NewEngine()
 
-	engine.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello, Locksyra!",
-		})
-	})
+	engine := engine.NewEngine(gin.New())
 
 	engine.Run(":8080")
 }

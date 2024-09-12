@@ -5,9 +5,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type SignupRequestModel struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+func SignupPost() gin.HandlerFunc {
+	return signup
 }
 
 // 暗号(Hash)化
@@ -21,32 +20,13 @@ func CompareHashAndPassword(hash, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
-func Signup(c *gin.Context) {
+type LoginRequestSchema struct {
+	Uaername string `json:"username"`
+	Password string `json:"password"`
+}
 
-	// ユーザー情報を取得
-	var user SignupRequestModel
+func Login(c *gin.Context) {
+	var loginReq LoginRequestSchema
 
-	// リクエストボディをパース
-	if err := c.BindJSON(&user); err != nil {
-		c.JSON(400, gin.H{
-			"message": "Invalid request body",
-		})
-		return
-	}
-
-	// パスワードを暗号化
-	_, err := PasswordEncrypt(user.Password)
-	if err != nil {
-		c.JSON(500, gin.H{
-			"message": "Failed to encrypt password",
-		})
-		return
-	}
-
-	// ユーザー情報をDBに保存
-	// ここでは省略
-
-	c.JSON(200, gin.H{
-		"message": "Signup",
-	})
+	c.ShouldBindJSON(&loginReq)
 }
