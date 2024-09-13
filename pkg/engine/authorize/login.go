@@ -2,6 +2,7 @@ package authorize
 
 import (
 	"Locksyra/pkg/db"
+	jwt_util "Locksyra/pkg/jwt"
 	"Locksyra/pkg/util"
 
 	"github.com/gin-gonic/gin"
@@ -35,5 +36,15 @@ func login(c *gin.Context) {
 		return
 	}
 
+	token, err := jwt_util.GenerateJWT(loginReq.Uaername)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "Failed to generate JWT",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.SetCookie("token", token, 60*60*24, "/", "localhost", false, true)
 	c.JSON(200, gin.H{"message": "Login success"})
 }
