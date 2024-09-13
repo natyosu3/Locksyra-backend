@@ -2,6 +2,8 @@ package authorize
 
 import (
 	"Locksyra/pkg/db"
+	"Locksyra/pkg/model"
+	"Locksyra/pkg/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +27,7 @@ func signup(c *gin.Context) {
 	}
 
 	// パスワードを暗号化
-	hash, err := PasswordEncrypt(user.Password)
+	hash, err := util.PasswordEncrypt(user.Password)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "Failed to encrypt password",
@@ -34,10 +36,17 @@ func signup(c *gin.Context) {
 	}
 
 	// ユーザー情報をDBに保存
-	db.InsertDocument(map[string]string{
-		"name": user.Username,
-		"hash": hash,
+	err = db.InsertDocument(model.User{
+		Username:       user.Username,
+		HashedPassword: hash,
 	})
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "Failed to insert user",
+			"error":   err.Error(),
+		})
+		return
+	}
 
 	c.JSON(200, gin.H{
 		"message": "Signup",

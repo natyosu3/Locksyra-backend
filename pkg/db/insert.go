@@ -1,21 +1,24 @@
 package db
 
 import (
+	"Locksyra/pkg/model"
 	"context"
-	"log/slog"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
-func InsertDocument(data any) error {
+func InsertDocument(user model.User) error {
 	cl := Connect()
 
 	coll := cl.Database("locksyra").Collection("user")
 
-	insertRes, err := coll.InsertOne(context.TODO(), data)
+	_, err := coll.InsertOne(context.TODO(), bson.M{
+		"username":        user.Username,
+		"hashed_password": user.HashedPassword,
+	})
 	if err != nil {
 		return err
 	}
-
-	slog.Info("挿入されたドキュメントのID: ", insertRes.InsertedID)
 
 	return nil
 

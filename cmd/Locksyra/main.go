@@ -10,7 +10,7 @@ import (
 
 func main() {
 	fmt.Println("Hello, Locksyra!")
-	db.Connect()
+	db.CreateInitCollection()
 
 	engine := engine.NewEngine(gin.New())
 
