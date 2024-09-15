@@ -6,6 +6,7 @@ import (
 	"Locksyra/pkg/util"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type SignupRequestModel struct {
@@ -37,6 +38,7 @@ func signup(c *gin.Context) {
 
 	// ユーザー情報をDBに保存
 	err = db.InsertDocument(model.User{
+		ID:             uuid.New().String(),
 		Username:       user.Username,
 		HashedPassword: hash,
 	})
