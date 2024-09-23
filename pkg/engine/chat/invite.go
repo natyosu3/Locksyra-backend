@@ -22,23 +22,31 @@ var upgrader = websocket.Upgrader{
 type SocketType string
 
 const (
-	MessageType SocketType = "message"
-	InviteType  SocketType = "invite"
-	ErrorType   SocketType = "error"
+	FirstConnectionType SocketType = "first_connection"
+	MessageType         SocketType = "message"
+	InviteType          SocketType = "invite"
+	ErrorType           SocketType = "error"
 )
 
 var allowedTypes = map[SocketType]bool{
-	MessageType: true,
-	InviteType:  true,
-	ErrorType:   true,
+	MessageType:         true,
+	InviteType:          true,
+	ErrorType:           true,
+	FirstConnectionType: true,
+}
+
+type User struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	UUID string `json:"uuid"`
 }
 
 type SocketFormat struct {
 	Type        SocketType `json:"type"`
 	ConectionID string     `json:"conection_id"`
 	Data        string     `json:"data"`
-	Sender      string     `json:"sender"`
-	Receiver    string     `json:"receiver"`
+	Sender      User       `json:"sender"`
+	Receiver    User       `json:"receiver"`
 }
 
 var connections = struct {
@@ -91,13 +99,33 @@ func createChatRoom(c *gin.Context) {
 		}
 
 		switch msg.Type {
+		case FirstConnectionType:
+			// メッセージ送信者にメッセージを送信
+			err = conn.WriteJSON(SocketFormat{
+				Type:        MessageType,
+				Data:        "Message received by server",
+				ConectionID: connID,
+				Sender: User{
+					ID:   msg.Sender.ID,
+					Name: msg.Sender.Name,
+					UUID: connID,
+				},
+				Receiver: User{
+					ID:   "admin",
+					Name: "admin",
+					UUID: "admin",
+				},
+			})
+			if err != nil {
+				log.Println("Write error: ", err)
+			}
 		case MessageType:
 			log.Printf("Message from %s: %s", msg.Sender, msg.Data)
 		case InviteType:
 			log.Printf("Invite from %s to %s: %s", msg.Sender, msg.Receiver, msg.Data)
 			// 受信者に通知を送信
 			connections.RLock()
-			receiverConn, ok := connections.m[msg.Receiver]
+			receiverConn, ok := connections.m[msg.Receiver.ID]
 			connections.RUnlock()
 			if ok {
 				err = receiverConn.WriteJSON(SocketFormat{
@@ -109,7 +137,7 @@ func createChatRoom(c *gin.Context) {
 					log.Println("Write error: ", err)
 				}
 			} else {
-				slog.Info("Receiver not found: " + msg.Receiver)
+				slog.Info("Receiver not found: " + msg.Receiver.ID)
 			}
 		case ErrorType:
 			log.Printf("Error from %s: %s", msg.Sender, msg.Data)
